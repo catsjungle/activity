@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!-- saved from url=(0076)http://yx.wepiao.com/excode/start.html?code=04165696f1c8fe83b9410cef3a177bdT -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="address=no">
+<title>微信电影票</title>
+<link href="./src/pub.css" rel="stylesheet" type="text/css">
+<script src="./src/zepto.min.js" charset="utf-8"></script>
+<script >
+    $(function(){
+        var valRes = false;
+        $('.valImg').attr('src','http://wx.wepiao.com/cgi/wx/verify?t='+new Date().getTime());
+        $('.valImg').click(function(){
+            $(this).attr('src','http://wx.wepiao.com/cgi/wx/verify?t='+new Date().getTime());
+        });
+        // 验证码处理
+        $('.val').on('focus', function(ev){
+            var _this = this;
+            console.log('focus');
+            $(document).on('keydown', function(ev){
+                console.log('val keydown')
+                if((ev.keyCode >=48 && ev.keyCode <= 57) || (ev.keyCode >= 65 && ev.keyCode <= 90) || ev.keyCode == 8){
+
+                }else{
+                    ev.preventDefault();
+                }
+                ev.cancelBubble=true;
+                ev.stopPropagation();
+            });
+
+            $(document).on('keyup', function(ev){
+                console.log('val keyup')
+                if($(_this).attr('value').length >= 5){
+                    $.ajax({
+                        url: 'http://wx.wepiao.com/cgi/wx/check_verify?code='+$(_this).attr('value')+'&t='+new Date().getTime(),
+                        type: 'get',
+                        dataType: 'json',
+                        success: function(data){
+                            console.log('checkCode:'+data)
+                            showCheckRes(parseInt(data));
+                            if($('.txt').attr('value').length>=10 && valRes){
+                                $('.btn').addClass('light');
+                            }
+
+                        },
+                        error: function(xhr, errorType, error){
+                            // alert(errorType);
+                        }
+                    });
+                    ev.cancelBubble=true;
+                    ev.stopPropagation();
+                }else if($('.val').attr('value').length<5){
+                    $('.btn').removeClass('light');
+                    $('.valText').html('');
+                }
+                
+            });
+            ev.cancelBubble=true;
+            ev.stopPropagation();
+
+            $(_this).on('blur', function(){
+                console.log('blur');
+            });
+        });
+        
+        function showCheckRes(code){
+            if(code === 1){
+                $('.valText').html('').removeClass('error');
+                valRes = true;
+            }else if(code ===0){
+                $('.valText').html('验证码错误,请重新输入').addClass('error');
+                $('.valImg').attr('src','http://wx.wepiao.com/cgi/wx/verify?t='+new Date().getTime());
+                $('.val')[0].value='';
+                valRes = false;
+                $('.btn').removeClass('light');
+            }
+        }
+        // 兑换码处理
+        $('.txt').on('focus',function(ev){
+
+            var _this = this;
+            $(document).on('keydown', function(ev){
+                console.log('txt keydown')
+                if(ev.shiftKey)console.log(ev.keyCode)
+                // alert(ev.keyCode)
+                if((ev.keyCode >=48 && ev.keyCode <= 57) || (ev.keyCode >= 65 && ev.keyCode <= 90) || ev.keyCode == 8){
+                }else{
+                    ev.preventDefault();
+                    // alert('只能输入数字或字母')
+                }
+                ev.cancelBubble=true;
+                ev.stopPropagation();
+            });
+
+            $(document).on('keyup', function(){
+                console.log('txt keyup')
+                if(_this.value.length >= 10 && $('.val').attr('value').length<5){
+                    // $('.txt').trrgger('blur');
+                    $('.val').trigger('focus');
+                }
+                if(_this.value.length >= 10 && $('.val').attr('value').length>=5 && valRes){
+                    $('.btn').addClass('light');
+                    
+                }else{
+                    $('.btn').removeClass('light');
+                }
+                ev.cancelBubble=true;
+                ev.stopPropagation();
+            });
+            ev.cancelBubble=true;
+            ev.stopPropagation();
+        });
+        $('.txt').on('blur', function(ev){
+            if($(this).attr('value').length <10){
+
+            }
+        })
+        
+
+        // 提交兑换码
+        $('.box1').on('click','.light', function(ev){
+            console.log('light')
+            var vipCode = $('.txt').attr('value');
+            $.ajax({
+                url: 'http://wx.wepiao.com/cgi/wx/weimovie_excode?sExCode='+vipCode+'&sCode='+$('.val').attr('value')+'&s=1'+'&t='+new Date().getTime(),
+                type: 'get',
+                dataType: 'json',
+                success: function(data){
+                    console.log('success')
+                    if(parseInt(data.ret)===0){
+                        $('.box1').hide();
+                        $('.box2').show();
+                        $('.tip3').html(data.data.sPresellName);
+                    }else{
+                        $('.valImg').attr('src','http://wx.wepiao.com/cgi/wx/verify?t='+new Date().getTime());
+                        alert('兑换码错误，请重新输入');
+                        $('.txt')[0].value='';
+                        $('.val')[0].value='';
+                        $('.valText').html('');
+
+                    }
+                    
+                },
+                error: function(xhr, errorType, error){
+                    // alert(errorType);
+                    // alert('error')
+                    console.log('success')
+                }
+            });
+            ev.cancelBubble=true;
+            ev.stopPropagation();            
+        });
+        
+        $('.jxyq').click(function(){
+            window.location.reload();
+        })
+
+    });
+</script>
+</head>
+
+<body>
+<section>
+    <div class="box1">
+        <h2 class="title">VIP通兑</h2>
+        <span style="display:block;text-align:center;font-size:13px;padding-bottom:10px;margin:-15px 0 5px;color:#aaa;">1个通兑码 = 1张预售券</span>
+        <input type="text" class="txt" placeholder="请输入10位通兑码" maxlength="10">
+        <div><input type="text" class="val" placeholder="请输入验证码" maxlength="5"><img src="" alt="" class="valImg"></div>
+        <div class="valText error"></div>
+        <input type="button" value="立即兑换" class="btn mgb"> <!-- light激活按钮 -->
+    </div>
+	<div class="box2" style="display:none;">
+        <h3 class="title2">兑换成功！</h3>
+        <p class="tip2">序列码成功兑换</p>
+        <p class="tip3"></p>
+        <a href="http://wx.wepiao.com/wechat.html"><input type="button" value="去选座" class="btn light mg"></a>
+        <div class="link"><a href="javascript:;" class="jxyq">继续兑换</a><span>|</span><a href="http://wx.wepiao.com/wechat.html?from=singlemessage&isappinstalled=0#preselllist">查看预售券</a></div>
+    </div>
+	<div class="bottom-aid-info" style="margin-top:-23%"><a href="http://yx.wepiao.com/excode/vip_description.html">VIP通兑使用说明</a></div>
+	<div class="bottom-aid-info">
+            <p>使用过程中如有任何疑问请咨询客服<br>
+            <a href="tel:4001100100"><i class="ico-tel"></i>&nbsp;客服电话：4001-100-100</a></p>
+            <!-- <p class="Co">微信电影票服务由北京网罗天下提供</p> -->
+    </div>
+
+    
+</section>
+
+
+<iframe src="about:blank" style="height: 0px; width: 0px; display: none;"></iframe></body></html>
